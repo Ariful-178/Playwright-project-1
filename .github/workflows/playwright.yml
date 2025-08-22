@@ -4,9 +4,6 @@ on:
     - cron: '0 9 * * *'  # 3 PM Bangladesh Time (UTC+6) = 9 AM UTC
   workflow_dispatch:  # Allow manual triggering
 
-env:
-  BASE_URL: ${{ vars.BASE_URL || 'http://localhost:3000' }}
-
 jobs:
   test:
     timeout-minutes: 60
@@ -30,6 +27,8 @@ jobs:
 
     - name: Run Playwright tests
       run: npx playwright test
+      env:
+        BASE_URL: ${{ vars.BASE_URL || 'http://localhost:3000' }}
 
     - name: Upload Playwright report
       uses: actions/upload-artifact@v4
@@ -43,10 +42,6 @@ jobs:
     needs: test
     if: always()
     runs-on: ubuntu-latest
-    # Add environment configuration here
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       pages: write
       id-token: write
@@ -57,7 +52,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: playwright-report
-        path: ./playwright-report
+        path: playwright-report
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
@@ -65,7 +60,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: './playwright-report'
+        path: playwright-report
 
     - name: Deploy to GitHub Pages
       id: deployment
